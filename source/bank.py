@@ -19,16 +19,14 @@ class Account(Base):
 
     def deposit(self, amount):
         self.balance += amount
-        type = "deposit"
-        transaction = Transaction(self.account_id, amount, type)
+        transaction = Transaction(amount=amount, type="deposit", account_id=self)
         return transaction
 
 
     def withdraw(self, amount):
         if self.balance >= amount:
             self.balance -= amount
-            type = "withdrawal"
-            transaction = Transaction(self.account_id, amount, type)
+            transaction = Transaction(amount=amount, type="withdrawal", account_id=self)
             return transaction
         else:
             raise ValueError

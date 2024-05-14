@@ -83,4 +83,6 @@ t2 = Transaction(2, 50, "withdrawal", a2.account_id)
 
 session.add(t1)
 session.add(t2)
+account.deposit(200)
+a2.withdraw(50)
 session.commit()

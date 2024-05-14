@@ -11,25 +11,42 @@ class Account(Base):
 
     account_id = Column("account_id", Integer, primary_key=True)
     balance = Column("balance", Float)
-    accounts = relationship("Transaction", back_populates="transactions")  # Relation avec les emprunts
-
+    transactions = relationship("Transaction", back_populates="accounts")  # Relation avec les emprunts
 
     def __init__(self, account_id, balance):
         self.account_id = account_id
         self.balance = balance
 
+    def deposit(self, amount):
+        self.balance += amount
+        type = "deposit"
+        transaction = Transaction(self.account_id, amount, type)
+        return transaction
+
+
+    def withdraw(self, amount):
+        if self.balance >= amount:
+            self.balance -= amount
+            type = "withdrawal"
+            transaction = Transaction(self.account_id, amount, type)
+            return transaction
+        else:
+            raise ValueError
+
+    def transfer():
+        pass
+
     def __repr__(self):
-        return f"Account(account_id={self.account_id}, balance='{self.balance}')"
+        return f"account_id={self.account_id}, balance='{self.balance}')"
 
-    def create_account(account_id, balance):
-        new_account = Account(account_id=account_id, balance=balance)
+    # def create_account(account_id, balance):
+    #     # new_account = Account(account_id=account_id, balance=balance)
 
-    def get_balance(balance):
-        return Account(balance=balance)
+    # def get_balance(balance):
+    #     return Account(balance=balance)
 
 
-
-class Transaction(Account):
+class Transaction(Base):
     __tablename__ = "transactions"
 
     transaction_id = Column("transaction_id", Integer, primary_key=True)
@@ -37,42 +54,33 @@ class Transaction(Account):
     amount = Column("amount", Float)
     type = Column("type", String)
     timestamp = Column("timestamp", DateTime, default=datetime.now)
-    transactions = relationship("Account", back_populates="accounts")  # Relation avec les emprunts
+    accounts = relationship("Account", back_populates="transactions")  # Relation avec les emprunts
 
-    def __init__(self, account_id, balance, transaction_id, amount, type, timestamp):
-        super().__init__(account_id, balance)
+    def __init__(self, transaction_id, amount, type, account_id):
+        # super().__init__(account_id, balance)
         self.transaction_id = transaction_id
         self.amount = amount
         self.type = type
-        self.timestamp = timestamp
+        self.account_id = account_id
 
-    def deposit(balance, amount):
-        return balance + amount
-
-    def withdraw(balance, amount):
-        withdrawal = balance - amount
-        if balance < 0:
-            raise ValueError
-        else:
-            return withdrawal
-
-    def transfer():
-        pass
-
-    def __repr__(self):
-        return f"Transaction(transaction_id={self.transaction_id}, amount='{self.amount}, type='{self.type}')"
-    
 
 engine = create_engine("sqlite:///bank.db", echo=True)
 
 Base.metadata.create_all(bind=engine)
 
 Session = sessionmaker(bind=engine)
-session = init.Session()
+session = Session()
 account = Account(1, 100)
 session.add(account)
 session.commit()
 
 a2 = Account(2, 50)
 session.add(a2)
+session.commit()
+
+t1 = Transaction(1, 200, "deposit", account.account_id)
+t2 = Transaction(2, 50, "withdrawal", a2.account_id)
+
+session.add(t1)
+session.add(t2)
 session.commit()

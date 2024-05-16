@@ -20,6 +20,7 @@ def test_deposit_normal(session, account_factory):
         account.deposit(-50)
         assert account.balance == 500
         assert account.session.commit.call_count == 0
+        # assert account.session.query(Transaction).count() == 1
 
 
 def test_deposit_zero_amount(account_factory, session):

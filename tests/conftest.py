@@ -2,14 +2,18 @@ import pytest
 
 from source.bank import Account, Transaction
 
-@pytest.fixture
-def account_factory():
-    def new_account(account_id, balance):
-        return Account(account_id=account_id, balance=balance)
-    return new_account
+from mock_alchemy.mocking import UnifiedAlchemyMagicMock
+
+@pytest.fixture(scope="function")
+def session():
+    # Créez une mock session utilisant UnifiedAlchemyMagicMock
+    session = UnifiedAlchemyMagicMock()
+    yield session
+    session.rollback()
 
 @pytest.fixture
-def transaction_factory():
-    def new_transaction(amount, type, account_id):
-        return Transaction(amount=amount, type=type, account_id=account_id)
-    return new_transaction
+def account_factory():
+    def new_account(account_id, balance, session):
+        return Account(account_id=account_id, balance=balance, session=session)
+    return new_account
+

@@ -2,7 +2,6 @@ from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, 
 from sqlalchemy.orm import declarative_base, sessionmaker, scoped_session, relationship
 from datetime import datetime
 
-
 Base = declarative_base()
 
 
@@ -13,12 +12,21 @@ class Account(Base):
     balance = Column("balance", Float)
     transactions = relationship("Transaction", back_populates="accounts")  # Relation avec les emprunts
 
-    def __init__(self, account_id, balance):
+    def __init__(self, account_id, balance, session):
         self.account_id = account_id
         self.balance = balance
+        self.session = session
+
 
     def create_account(self):
-        pass
+        self.session.add(self)
+        self.session.commit()
+
+
+    def create_transaction(self, amount, type):
+        transaction = Transaction(amount=amount, type=type, timestamp=datetime.now(), account_id=self.account_id)
+        return transaction
+        
 
     def get_balance(self):
         return self.balance
@@ -26,8 +34,9 @@ class Account(Base):
     def deposit(self, amount):
         if amount > 0:
             self.balance += amount
-            transaction = Transaction(amount=amount, type="deposit", account_id=self)
-            return transaction
+            new_transaction = self.create_transaction(amount=amount, type="deposit")
+            self.session.add(new_transaction)
+            self.session.commit()
         else:
             raise ValueError
 
@@ -36,28 +45,26 @@ class Account(Base):
         if amount > 0:
             if self.balance >= amount:
                 self.balance -= amount
-                transaction = Transaction(amount=amount, type="withdrawal", account_id=self)
-                return transaction
+                new_transaction = self.create_transaction(amount=amount, type="withdraw")
+                self.session.add(new_transaction)
+                self.session.commit()
             else:
                 raise ValueError
         else:
             raise ValueError
 
     def transfer(self, other_account, amount):
-        if self.withdraw(amount):
-            other_account.deposit(amount)
-            return True
+        if amount <= self.balance and amount > 0:
+            self.balance -= amount
+            other_account.balance += amount
+            transfer = self.create_transaction(amount, "transfer")
+            self.session.add(transfer)
+            self.session.commit()
         else:
-            return False
+            raise ValueError
         
     def __repr__(self):
         return f"account_id={self.account_id}, balance='{self.balance}'"
-
-    # def create_account(account_id, balance):
-    #     # new_account = Account(account_id=account_id, balance=balance)
-
-    # def get_balance(balance):
-    #     return Account(balance=balance)
 
 
 class Transaction(Base):
@@ -70,11 +77,11 @@ class Transaction(Base):
     timestamp = Column("timestamp", DateTime, default=datetime.now)
     accounts = relationship("Account", back_populates="transactions")  # Relation avec les emprunts
 
-    def __init__(self, amount, type, account_id):
-        # super().__init__(account_id, balance)
-        # self.transaction_id = transaction_id
-        self.amount = amount
-        self.type = type
-        self.account_id = account_id
+    # def __init__(self, amount, type, account_id):
+    #     # super().__init__(account_id, balance)
+    #     # self.transaction_id = transaction_id
+    #     self.amount = amount
+    #     self.type = type
+    #     self.account_id = account_id
 
 

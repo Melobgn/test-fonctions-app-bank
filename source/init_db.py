@@ -1,11 +1,16 @@
-from sqlalchemy import create_engine, ForeignKey, Column, String, Integer, Float, CHAR
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
+from bank import Base
 
-Base = declarative_base()
+def init_db():
+    engine = create_engine('sqlite:///bank.db')
 
-engine = create_engine("sqlite:///bank.db", echo=True)
+    try:
 
-Base.metadata.create_all(bind=engine)
+        Base.metadata.drop_all(bind=engine)
+        Base.metadata.create_all(bind=engine)
 
-Session = sessionmaker(bind=engine)
+    except Exception as e:
+        print(e)
+
+    return engine
+

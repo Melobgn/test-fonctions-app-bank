@@ -38,7 +38,7 @@ class Account(Base):
             self.session.add(new_transaction)
             self.session.commit()
         else:
-            raise ValueError
+            raise ValueError()
 
 
     def withdraw(self, amount):
@@ -49,9 +49,9 @@ class Account(Base):
                 self.session.add(new_transaction)
                 self.session.commit()
             else:
-                raise ValueError
+                raise ValueError()
         else:
-            raise ValueError
+            raise ValueError()
 
     def transfer(self, other_account, amount):
         if amount <= self.balance and amount > 0:
@@ -61,7 +61,7 @@ class Account(Base):
             self.session.add(transfer)
             self.session.commit()
         else:
-            raise ValueError
+            raise ValueError()
         
     def __repr__(self):
         return f"account_id={self.account_id}, balance='{self.balance}'"
